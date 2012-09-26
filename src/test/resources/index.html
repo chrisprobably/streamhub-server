@@ -1,0 +1,167 @@
+<html>
+<head>
+<title>Test Page</title>
+<style type="text/css">
+div {
+	font-family: Arial;
+	font-size: 10pt;
+}
+</style>
+</head>
+<body>
+<h3>Test page</h3>
+
+<p>Server URL: http://127.0.0.1:7654/ <input type="text" id="url" value="http://127.0.0.1:8888/"></p>
+<p>
+<input type="button" id="connect" value="Connect" onclick="runTest()">
+<input type="button" id="disconnect" value="Disconnect" onclick="disconnect()">
+<input type="button" id="clearText" value="Clear Text" onclick="clearText()">
+<input type="button" id="turnLoggingOff" value="Turn Logging Off" onclick="turnLoggingOff()">
+<input type="button" id="turnLoggingOn" value="Turn Logging On" onclick="turnLoggingOn()">
+<input type="button" id="switchToCountLogger" value="Switch To Count Logger" onclick="switchToCountLogger()">
+<input type="button" id="addConnectionListener" value="Add Connection Listener" onclick="addConnectionListener()">
+</p>
+<p>
+Proxy base URL: <input type="text" id="proxyRootUrl" value="http://127.0.0.1:8156">
+<input type="button" id="stopProxy" value="Stop Proxy" onclick="stopProxy()">
+<input type="button" id="startProxy" value="Start Proxy" onclick="startProxy()">
+</p>
+<p>
+Topic: <input type="text" id="topic" value="AAPL">
+<input type="button" id="subscribe" value="Subscribe" onclick="subscribe()">
+</p>
+<p>
+Json: <input type="text" id="json" value="{'key':'value'}">
+<input type="button" id="publish" value="Publish" onclick="publish()">
+</p>
+<p>
+Server List: <input type="text" id="serverList" value="http://localhost.stream-hub.com:7654/,http://localhost.stream-hub.com:8888/" size="50">
+<select id="failoverAlgorithm">
+<option value="ordered">ordered</option>
+<option value="priority">priority</option>
+<option value="random">random</option>
+</select>
+<select id="connectionType">
+<option value="STREAM">STREAM</option>
+<option value="POLL">POLL</option>
+</select>
+<input type="button" id="connectAdvanced" value="Connect Advanced" onclick="runTestAdvanced()"><br/>
+Initial Reconnect Delay: <input type="text" id="initialReconnectDelayMillis" value="1000" size="5">
+Max Reconnect Delay: <input type="text" id="maxReconnectDelayMillis" value="-1" size="5">
+Max Reconnect Attempts: <input type="text" id="maxReconnectAttempts" value="-1" size="2"><br/>
+Exponential BackOff: <input type="checkbox" id="useExponentialBackOff" value="useExponentialBackOff">
+BackOff Multiplier: <input type="text" id="backOffMultiplier" value="0" size="3">
+
+</p>
+<div id="logMessages"></div>
+
+<script type="text/javascript" src="javascript/XMLHttpRequest.js"></script>
+<script type="text/javascript" src="javascript/streamhub.js"></script>
+<script type="text/javascript">
+	var oLogger = new StreamHub.ElementLogger({elementId : "logMessages"});
+	
+	hub = new StreamHub();
+	hub.setLogger(oLogger);
+	
+	function runTest() {
+		var sServerUrl = document.getElementById("url").value;
+		hub.connect(sServerUrl, "1");
+	}
+	
+	function runTestAdvanced() {
+		var sServerList = document.getElementById("serverList").value;
+		var pServerList = sServerList.split(",");
+		var nInitialReconnectDelayMillis = parseInt(document.getElementById("initialReconnectDelayMillis").value);
+		var nMaxReconnectDelayMillis = parseInt(document.getElementById("maxReconnectDelayMillis").value);
+		var nMaxReconnectAttempts = parseInt(document.getElementById("maxReconnectAttempts").value);
+		var bUseExponentialBackOff = (document.getElementById("useExponentialBackOff").checked == true);
+		var nBackOffMultiplier = parseFloat(document.getElementById("backOffMultiplier").value);
+		var eFailoverAlgorithm = document.getElementById("failoverAlgorithm");
+		var sFailoverAlgorithm = eFailoverAlgorithm.options[eFailoverAlgorithm.selectedIndex].value;
+		var eConnectionType = document.getElementById("connectionType");
+		var sConnectionType = eConnectionType.options[eConnectionType.selectedIndex].value;
+		hub.connect({
+			serverList: pServerList,
+			initialReconnectDelayMillis: nInitialReconnectDelayMillis,
+			maxReconnectDelayMillis: nMaxReconnectDelayMillis,
+			maxReconnectAttempts: nMaxReconnectAttempts,
+			useExponentialBackOff: bUseExponentialBackOff,
+			backOffMultiplier: nBackOffMultiplier,
+			failoverAlgorithm: sFailoverAlgorithm, 
+			connectionType: sConnectionType,
+			staticUID: "1"
+		});
+	}
+	
+	function disconnect() {
+		if (window.hub) {
+			hub.disconnect();
+		}
+	}
+	
+	function clearText() {
+		var eLogDiv = document.getElementById("logMessages");
+		eLogDiv.innerHTML = "";
+	}
+	
+	function startProxy() {
+		var sProxyRootUrl = document.getElementById("proxyRootUrl").value;
+		asyncGet(sProxyRootUrl + "/proxy/start");
+	}
+	
+	function stopProxy() {
+		var sProxyRootUrl = document.getElementById("proxyRootUrl").value;
+		asyncGet(sProxyRootUrl + "/proxy/stop");
+	}
+	
+	function asyncGet(sUrl) {
+		var oXMLHttpRequest	= new XMLHttpRequest();
+		oXMLHttpRequest.open("GET", sUrl, true);
+		oXMLHttpRequest.onreadystatechange	= function() {
+			if (this.readyState == XMLHttpRequest.DONE) {
+				oLogger.log("XHR: [" + this.responseText + "]");
+			}
+		}
+		oXMLHttpRequest.send(null);
+	}	
+	
+	function priceChangeListener(sTopic, oData) {
+		oLogger.log("priceChangeListener response for topic '" + sTopic + "' is Name: '" + oData.Name + "' Last: '" + oData.Last + "'");
+	}
+	
+	function subscribe() {
+		var sTopic = document.getElementById("topic").value;
+		hub.subscribe(sTopic, priceChangeListener);
+	}
+
+	function publish() {
+		var sTopic = document.getElementById("topic").value;
+		var sJson = document.getElementById("json").value;
+		hub.publish(sTopic, sJson);
+	}
+	
+	function turnLoggingOff() {
+		hub.setLogger(new StreamHub.NullLogger());
+	}
+	
+	function turnLoggingOn() {
+		hub.setLogger(oLogger);
+	}
+	
+	function switchToCountLogger() {
+		hub.setLogger(new StreamHub.CountLogger({elementId : "logMessages"}));	
+	}
+	
+	function addConnectionListener() {
+		var connectionListener = new StreamHub.ConnectionListener();
+		connectionListener.onConnectionEstablished = function () {
+			oLogger.log("ConnectionListener: Connection Established");
+		};
+		connectionListener.onConnectionLost = function () {
+			oLogger.log("ConnectionListener: Connection Lost");
+		};
+		hub.addConnectionListener(connectionListener);
+	}
+</script>
+</body>
+</html>

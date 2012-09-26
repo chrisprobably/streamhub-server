@@ -1,0 +1,31 @@
+<html>
+<head>
+<title>Test Page</title>
+<style type="text/css">
+div {
+	font-family: Arial;
+	font-size: 10pt;
+}
+</style>
+</head>
+<body>
+<h3>Test page</h3>
+
+<div id="logMessages"></div>
+
+<script type="text/javascript" src="javascript/XMLHttpRequest.js"></script>
+<script type="text/javascript" src="javascript/streamhub.js"></script>
+<script type="text/javascript">
+	var oLogger = new StreamHub.ElementLogger({elementId : "logMessages"});
+
+	hub = new StreamHub();
+	var sServerUrl = "http://localhost:6767/";
+	hub.connect(sServerUrl);
+	hub.subscribe("topic-0", priceChangeListener);	
+	
+	function priceChangeListener(sTopic, oData) {
+		oLogger.log("SequenceNumber: '" + oData.sequenceNumber + "' Timestamp: '" + oData.timestamp + "'");
+	}
+</script>
+</body>
+</html>

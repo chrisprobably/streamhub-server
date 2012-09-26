@@ -1,0 +1,78 @@
+Please may we have the output of the following command (open files) for
+> the user who runs the StreamHub process:
+> 
+> 	* ulimit -n
+> 
+> Please may we have the values of the following Linux TCP/IP settings in
+> order to determine if this is related:
+> 
+> 	* /proc/sys/net/ipv4/tcp_max_syn_backlog
+> 	* /proc/sys/net/ipv4/tcp_wmem
+> 	* /proc/sys/net/ipv4/tcp_rmem
+> 	* /proc/sys/net/core/wmem_max
+> 	* /proc/sys/net/core/rmem_max
+> 	* /proc/sys/net/ipv4/tcp_low_latency
+> 	* /proc/sys/net/ipv4/ip_local_port_range
+> 	* /proc/sys/net/ipv4/tcp_moderate_rcvbuf
+
+
+We would recommend changing the ulimit and tcp_max_syn_backlog - this will increase the amount of TCP throughput that can be achieved concurrently.  This may be causing the delay effect you are seeing as packets are being queued up, either because of lack of available open files (sockets are treated as files in linux), or because of a backlog of SYN packets (tcp_max_syn_backlog).  Although we cannot confirm this is the cause - it is something you can try.
+
+Increase the open files to at least 5000:
+
+ulimit -n 5000
+
+Check the value has actually been increased with:
+
+ulimit -n
+
+The number of open sockets of a process can be checked with the command:
+
+lsof -Pn -p<pid> | grep TCP
+
+To count the number in use:
+
+lsof -Pn -p<pid> | grep TCP | wc -l
+
+
+To increase the tcp_max_syn_backlog:
+
+echo 5000 > /proc/sys/net/ipv4/tcp_max_syn_backlog
+
+Both of these values will not be persisted on restart.  To persist them on each restart do the following:
+
+    * Add the ulimit command to the '.profile' of '.bash_profile' startup script of the user that runs StreamHub.
+    * Add an entry in /etc/sysctl.conf for net.ipv4.tcp_max_syn_backlog=5000
+
+The details of any commands may be slightly different depending on kernel version and linux type.
+
+The other values are OK.  They should not be causing this problem but can be tuned to provide better performance. (Please refer to any online 'Linux TCP Tuning' guide for more details.)
+
+When you have found an appropriate time to apply these changes and re-test please let us know.
+
+
+Like all operating systems, the default maximum Linux TCP buffer sizes are way too small. I suggest changing them to the following settings:
+
+  # increase TCP max buffer size setable using setsockopt()
+  net.core.rmem_max = 16777216
+  net.core.wmem_max = 16777216
+  # increase Linux autotuning TCP buffer limits
+  # min, default, and max number of bytes to use
+  # set max to at least 4MB, or higher if you use very high BDP paths
+  net.ipv4.tcp_rmem = 4096 87380 16777216 
+  net.ipv4.tcp_wmem = 4096 65536 16777216
+You should also verify that the following are all set to the default value of 1
+
+  sysctl net.ipv4.tcp_window_scaling 
+  sysctl net.ipv4.tcp_timestamps 
+  sysctl net.ipv4.tcp_sack
+  
+  There are a couple additional sysctl settings for 2.6:
+
+   # don't cache ssthresh from previous connection
+   net.ipv4.tcp_no_metrics_save = 1
+   net.ipv4.tcp_moderate_rcvbuf = 1
+   # recommended to increase this for 1000 BT or higher
+   net.core.netdev_max_backlog = 2500
+   # for 10 GigE, use this
+   # net.core.netdev_max_backlog = 30000   

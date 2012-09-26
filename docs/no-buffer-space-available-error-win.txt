@@ -1,0 +1,11 @@
+The default maximum number of ephemeral TCP ports is 5000 in the products that are included in the 'Applies to' section. A new parameter has been added in these products. To increase the maximum number of ephemeral ports, follow these steps:
+1.	Start Registry Editor.
+2.	Locate the following subkey in the registry, and then click Parameters:
+HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters
+3.	On the Edit menu, click New, and then add the following registry entry:
+Value Name: MaxUserPort
+Value Type: DWORD
+Value data: 65534
+Valid Range: 5000-65534 (decimal)
+Default: 0x1388 (5000 decimal)
+Description: This parameter controls the maximum port number that is used when a program requests any available user port from the system. Typically , ephemeral (short-lived) ports are allocated between the values of 1024 and 5000 inclusive.

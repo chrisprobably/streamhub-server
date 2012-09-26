@@ -1,0 +1,93 @@
+<html>
+<head>
+<title>Stock Demo</title>
+<style type="text/css">
+div {
+	font-family: Arial;
+	font-size: 10pt;
+}
+</style>
+</head>
+<body>
+<h3>Stock Demo</h3>
+
+<table summary="Stocks">
+	<tr><th>Name</th><th>Last</th></tr>
+	<tr><td>Apple</td><td id="Apple">-</td></tr>
+	<tr><td>Coca Cola</td><td id="CocaCola">-</td></tr>
+</table>
+
+<p>Server URL: <input type="text" id="url"></p>
+<p><input type="button" id="connect" value="Connect" onclick="runTest()"></p>
+<p><input type="button" id="connectUniqueId" value="Connect" onclick="runTest(true)"></p>
+<p><input type="button" id="connectMultipleSubscription" value="Connect (MultipleSubscription)" onclick="runMultipleSubscriptionTest()"></p>
+<p><input type="button" id="disconnect" value="Disconnect" onclick="disconnect()"></p>
+<p><input type="text" id="unsubscribeTopic"><input type="button" id="unsubscribe" onclick="unsubscribe()"><input type="button" id="unsubscribeAll" onclick="unsubscribeAll()"></p>
+<p>
+Topic: <input type="text" id="topic" value="AAPL">
+<input type="button" id="subscribe" value="Subscribe" onclick="subscribe()">
+</p>
+<div id="logMessages"></div>	
+
+<script type="text/javascript" src="javascript/streamhub.js"></script>
+<script type="text/javascript">
+	var mTopicToId = {};
+	mTopicToId["AAPL"] = "Apple";
+	mTopicToId["KO"] = "CocaCola";
+
+	function priceChangeListener(sTopic, oData) {
+		oDivLogger.log("priceChangeListener response for topic '" + sTopic + "' is Name: '" + oData.Name + "' Last: '" + oData.Last + "'");
+		setText(mTopicToId[sTopic], oData.Last);
+	}
+	
+	function setText(sId, sText) {
+		// firstChild.nodeValue works in IE 6, IE 7, FF2, FF 3 and Safari
+		document.getElementById(sId).firstChild.nodeValue = sText;
+	}
+	
+	function doConnection(bMulti) {
+		oDivLogger = new StreamHub.ElementLogger({elementId : "logMessages"});
+		hub = new StreamHub();
+		hub.setLogger(oDivLogger);
+		var sServerUrl = document.getElementById("url").value;
+		if (bMulti === undefined) {
+			hub.connect({
+				serverList: [sServerUrl],
+				staticUID: "1"
+			});
+		} else {
+			hub.connect(sServerUrl);
+		}	
+	}
+	
+	function runTest(bMulti) {
+		doConnection(bMulti);
+		hub.subscribe("AAPL", priceChangeListener);
+		hub.subscribe("KO", priceChangeListener);
+	}
+
+	function runMultipleSubscriptionTest(bMulti) {
+		doConnection(bMulti);
+		hub.subscribe(["AAPL","KO"], priceChangeListener);
+	}
+	
+	function subscribe() {
+		var sTopic = document.getElementById("topic").value;
+		hub.subscribe(sTopic, priceChangeListener);
+	}	
+	
+	function unsubscribe() {
+		var sTopic = document.getElementById("unsubscribeTopic").value;
+		hub.unsubscribe(sTopic);
+	}
+	
+	function unsubscribeAll() {
+		hub.unsubscribe(["AAPL","KO"]);
+	}
+	
+	function disconnect() {
+		hub.disconnect();
+	}
+</script>
+</body>
+</html>

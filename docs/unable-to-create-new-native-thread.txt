@@ -1,0 +1,18 @@
+http://www.egilh.com/blog/archive/2006/06/09/2811.aspx
+
+http://jroller.com/page/rreyelts/20040909
+
+I recently came across this exception on a couple of java systems that use many threads  java.lang.OutOfMemoryError: unable to create new native thread. The strange thing was that the JVM had been assigned a lot of memory (1.5GB) and that it had at least half the memory available. Michele found this article that points out that the more memory you give to the JVM the more likely you are to get java.lang.OutOfMemoryError: unable to create new native thread exceptions when you have many threads.
+Which makes perfect sense when you think about it. Each 32 bit process on Windows has 2GB "available" memory as 2GB is reserved to Windows. In my case the JVM grabbed 1.5 GB leaving 500MB. Part of the 500MB was used to map system dlls etc in memory so less than 400 MB was left. Now to the crucial point: When you create a thread in java it creates a Thread object in the JVM memory but it also creates a operating system thread. The operating system creates the thread with a thread stack in the 400MB that is left, not in the 1.5 GB allocated in the JVM. Java 1.4 uses a default stack size of 256kb but Java 1.5 uses a 1MB stack per thread. So, in the 400MB left to process I could only generate ~400 threads. Absurd but true: to create more threads you have to reduce the memory allocated to the JVM. Another option is to host the JVM in your own process using JNI.
+This formula gives a decent estimate for the number of threads you can create: 
+(MaxProcessMemory - JVMMemory - ReservedOsMemory) / (ThreadStackSize) = Number of threads
+For Java 1.5 I get the following results assuming that the OS reserves about 120MB:
+1.5GB allocated to JVM: (2GB-1.5Gb-120MB)/(1MB) = ~380 threads
+1.0GB allocated to JVM: (2GB-1.0Gb-120MB)/(1MB) = ~880 threads
+Java 1.4 uses 256kb for the thread stack which lets you create a lot more threads:
+1.5GB allocated to JVM: ~1520 threads
+1.0GB allocated to JVM: ~3520 threads
+I have not tried the 3GB switch but it should in theory let you create more threads.
+
+
+Feel free to drop a few cents in the tip jar if this post saved you time and money

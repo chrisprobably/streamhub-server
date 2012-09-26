@@ -1,0 +1,44 @@
+<html>
+<head>
+<title>Test Page</title>
+<style type="text/css">
+div {
+	font-family: Arial;
+	font-size: 10pt;
+}
+</style>
+</head>
+<body>
+<h3>Domain Test page</h3>
+
+<input type="button" id="runDomainTests" value="Run Domain Tests" onclick="runDomainTests()"> 
+
+<div id="logMessages"></div>
+
+<script type="text/javascript" src="javascript/XMLHttpRequest.js"></script>
+<script type="text/javascript" src="javascript/streamhub.js"></script>
+<script type="text/javascript">
+	var oLogger = new StreamHub.ElementLogger({elementId : "logMessages"});
+
+	function runDomainTests() {
+		oLogger.log("DomainUtils.extractDomain(\"www.stream-hub.com\")=" + StreamHub.DomainUtils.extractDomain("www.stream-hub.com"));
+		oLogger.log("DomainUtils.extractDomain(\"stream-hub.com\")=" + StreamHub.DomainUtils.extractDomain("stream-hub.com"));
+		oLogger.log("DomainUtils.extractDomain(\"192.168.1.68\")=" + StreamHub.DomainUtils.extractDomain("192.168.1.68"));
+		oLogger.log("DomainUtils.extractDomain(\"en.p1.stream-hub.com\")=" + StreamHub.DomainUtils.extractDomain("en.p1.stream-hub.com"));
+		oLogger.log("DomainUtils.extractDomain(\"123.com\")=" + StreamHub.DomainUtils.extractDomain("123.com"));
+		oLogger.log("DomainUtils.extractDomain(\"00.123.com\")=" + StreamHub.DomainUtils.extractDomain("00.123.com"));
+		oLogger.log("DomainUtils.extractDomain(\"www.streamhub.co.uk\")=" + StreamHub.DomainUtils.extractDomain("streamhub.co.uk"));
+		oLogger.log("DomainUtils.extractDomain(\"localhost\")=" + StreamHub.DomainUtils.extractDomain("localhost"));
+		oLogger.log("DomainUtils.extractDomain(\"localhost.localadmin\")=" + StreamHub.DomainUtils.extractDomain("localhost.localadmin"));
+		oLogger.log("DomainUtils.extractDomain(\"2001:db8::1428:57ab\")=" + StreamHub.DomainUtils.extractDomain("2001:db8::1428:57ab"));
+		oLogger.log("DomainUtils.extractDomain(\"push1.dmz.gov.uk\")=" + StreamHub.DomainUtils.extractDomain("push1.dmz.gov.uk"));
+		oLogger.log("DomainUtils.extractDomain(\"push1.dmz.net\")=" + StreamHub.DomainUtils.extractDomain("push1.dmz.net"));
+		oLogger.log("DomainUtils.extractDomain(\"push1.dmz.us\")=" + StreamHub.DomainUtils.extractDomain("push1.dmz.us"));
+		oLogger.log("DomainUtils.extractDomain(\"push1.dmz.org.uk\")=" + StreamHub.DomainUtils.extractDomain("push1.dmz.org.uk"));
+		oLogger.log("DomainUtils.extractDomain(\"1234.biz\")=" + StreamHub.DomainUtils.extractDomain("1234.biz"));
+		oLogger.log("Tests finished");
+		oLogger.log("Lost connection to server");
+	}
+</script>
+</body>
+</html>

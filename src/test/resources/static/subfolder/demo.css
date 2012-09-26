@@ -1,0 +1,24 @@
+td, th {
+	padding: 5px;
+	font-family: Arial,verdana;
+	font-size: 9pt;	
+}
+
+.price, .change {
+	text-align: right;
+}
+
+#stocks {
+	margin-left: 25px;
+	margin-top: 12px;
+}
+#BAC, #KO, #MCD, #WMT {
+	background-color: #fff;
+}
+.arrow {
+	background-image: url(../images/upanddownarrows.gif);
+	background-position: 0 0;
+	background-repeat: no-repeat;
+	width: 4px;
+	height: 16px;
+}

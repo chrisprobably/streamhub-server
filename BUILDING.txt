@@ -1,0 +1,10 @@
+PRE-REQUISITES TO BUILDING STREAMHUB
+====================================
+
+
+1. Add an entry in your hosts file (C:\WINDOWS\system32\drivers\etc\hosts) for localhost.stream-hub.com as an alias of localhost.
+2. Install Firefox
+3. Install Internet Explorer
+4. Install Safari
+5. Install Google Chrome
+6. Change the entries in com.streamhub.util.Browser to match the path of the browsers on your local filesystem.

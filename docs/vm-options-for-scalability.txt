@@ -1,0 +1,6 @@
+Need to use a JDK because the JREs don't include a server VM. 
+ 
+-server -Xconcurrentio
+
+
+
